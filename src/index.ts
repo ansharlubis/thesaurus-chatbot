@@ -124,11 +124,7 @@ class ChatBot {
         contentDiv.className = 'message-content';
         contentDiv.textContent = message.content;
 
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'message-time';
-
         messageDiv.appendChild(contentDiv);
-        messageDiv.appendChild(timeDiv);
         chatMessages.appendChild(messageDiv);
 
         chatMessages.scrollTop = chatMessages.scrollHeight;
