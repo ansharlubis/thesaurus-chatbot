@@ -1,3 +1,4 @@
+declare const marked: any;
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
@@ -18,6 +19,7 @@ declare class ChatBot {
     private handleSendMessage;
     private sendToOllama;
     private displayMessage;
+    private formatMessageContent;
     private showTypingIndicator;
     private hideTypingIndicator;
 }

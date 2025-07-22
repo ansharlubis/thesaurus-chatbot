@@ -1,3 +1,5 @@
+declare const marked: any;
+
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
@@ -12,7 +14,7 @@ interface OllamaRequest {
 class ChatBot {
     private messages: ChatMessage[] = [];
     private ollamaUrl: string = 'http://localhost:11434/api/chat';
-    private currentModel: string = 'smollm:360m';
+    private currentModel: string = 'llama3.2:1b';
 
     constructor() {
         this.initializeEventListeners();
@@ -22,7 +24,7 @@ class ChatBot {
     private initializeMessages(): void {
         const initialPrompt: ChatMessage = {
             role: 'system',
-            content: 'You are a helpful thesaurus assistant. Answer questions by providing a succinct defintion and two easy sentence examples.',
+            content: 'You are a helpful thesaurus assistant. Answer questions by providing a succinct defintion and two easy sentence examples. Format your responses using markdown with proper headings, bullet points, and emphasis where appropriate.',
         }
         this.messages.push(initialPrompt)
     }
@@ -122,12 +124,32 @@ class ChatBot {
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.textContent = message.content;
+        contentDiv.innerHTML = this.formatMessageContent(message.content);
 
         messageDiv.appendChild(contentDiv);
         chatMessages.appendChild(messageDiv);
 
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    private formatMessageContent(content: string): string {
+        try {
+            if (typeof marked === 'undefined') {
+                throw new Error('Marked library not loaded');
+            }
+            return marked.parse(content);
+        } catch (error) {
+            console.error('Error parsing markdown with marked:', error);
+            // Fallback to simple parsing
+            return content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
     }
 
     private showTypingIndicator(): void {
