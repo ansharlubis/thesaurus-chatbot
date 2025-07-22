@@ -99,55 +99,24 @@ class ChatBot {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     formatMessageContent(content) {
-        // Simple markdown parser
-        let html = content
-            // Escape HTML first
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            // Process markdown
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-            .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
-            .replace(/`(.*?)`/g, '<code>$1</code>') // Inline code
-            .replace(/^### (.*$)/gim, '<h4>$1</h3>')
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>') // H3
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>') // H2
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>') // H1
-            .replace(/^\* (.*$)/gim, '<li>$1</li>') // List items
-            .replace(/^\- (.*$)/gim, '<li>$1</li>'); // List items (alternative);
-        // Handle list wrapping first
-        const lines = html.split('\n');
-        let inList = false;
-        let result = '';
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.includes('<li>')) {
-                if (!inList) {
-                    result += '<ul>';
-                    inList = true;
-                }
-                result += line;
+        try {
+            if (typeof marked === 'undefined') {
+                throw new Error('Marked library not loaded');
             }
-            else {
-                if (inList) {
-                    result += '</ul>';
-                    inList = false;
-                }
-                if (line.trim()) {
-                    result += line + (i < lines.length - 1 ? '<br>' : '');
-                }
-            }
+            return marked.parse(content);
         }
-        if (inList) {
-            result += '</ul>';
+        catch (error) {
+            console.error('Error parsing markdown with marked:', error);
+            // Fallback to simple parsing
+            return content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
         }
-        // Wrap in paragraph tags if no block elements
-        if (!result.includes('<h') && !result.includes('<li>') && !result.includes('<ul>')) {
-            result = '<p>' + result + '</p>';
-        }
-        return result;
     }
     showTypingIndicator() {
         const chatMessages = document.getElementById('chat-messages');
