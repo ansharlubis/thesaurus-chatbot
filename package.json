@@ -7,9 +7,7 @@
     "build": "tsc && sass styles.scss styles.css",
     "build:css": "sass styles.scss styles.css",
     "watch:css": "sass styles.scss styles.css --watch",
-    "start": "node dist/index.js",
-    "dev": "tsc --watch",
-    "serve": "npx http-server . -p 3000"
+    "dev": "tsc --watch"
   },
   "keywords": [
     "typescript",
@@ -20,8 +18,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "http-server": "^14.0.0",
     "sass": "^1.89.2",
     "typescript": "^5.0.0"
   }
