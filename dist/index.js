@@ -3,14 +3,14 @@ class ChatBot {
     constructor() {
         this.messages = [];
         this.ollamaUrl = 'http://localhost:11434/api/chat';
-        this.currentModel = 'smollm:360m';
+        this.currentModel = 'llama3.2:1b';
         this.initializeEventListeners();
         this.initializeMessages();
     }
     initializeMessages() {
         const initialPrompt = {
             role: 'system',
-            content: 'You are a helpful thesaurus assistant. Answer questions by providing a succinct defintion and two easy sentence examples.',
+            content: 'You are a helpful thesaurus assistant. Answer questions by providing a succinct defintion and two easy sentence examples. Format your responses using markdown with proper headings, bullet points, and emphasis where appropriate.',
         };
         this.messages.push(initialPrompt);
     }
@@ -93,10 +93,61 @@ class ChatBot {
         messageDiv.className = `message ${message.role === 'user' ? 'user-message' : 'bot-message'}`;
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.textContent = message.content;
+        contentDiv.innerHTML = this.formatMessageContent(message.content);
         messageDiv.appendChild(contentDiv);
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    formatMessageContent(content) {
+        // Simple markdown parser
+        let html = content
+            // Escape HTML first
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            // Process markdown
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+            .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+            .replace(/`(.*?)`/g, '<code>$1</code>') // Inline code
+            .replace(/^### (.*$)/gim, '<h4>$1</h3>')
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>') // H3
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>') // H2
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>') // H1
+            .replace(/^\* (.*$)/gim, '<li>$1</li>') // List items
+            .replace(/^\- (.*$)/gim, '<li>$1</li>'); // List items (alternative);
+        // Handle list wrapping first
+        const lines = html.split('\n');
+        let inList = false;
+        let result = '';
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.includes('<li>')) {
+                if (!inList) {
+                    result += '<ul>';
+                    inList = true;
+                }
+                result += line;
+            }
+            else {
+                if (inList) {
+                    result += '</ul>';
+                    inList = false;
+                }
+                if (line.trim()) {
+                    result += line + (i < lines.length - 1 ? '<br>' : '');
+                }
+            }
+        }
+        if (inList) {
+            result += '</ul>';
+        }
+        // Wrap in paragraph tags if no block elements
+        if (!result.includes('<h') && !result.includes('<li>') && !result.includes('<ul>')) {
+            result = '<p>' + result + '</p>';
+        }
+        return result;
     }
     showTypingIndicator() {
         const chatMessages = document.getElementById('chat-messages');
